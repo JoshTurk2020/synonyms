@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Synonyms Maze Game</title>
+  <style>
+    .maze-cell {
+      width: 50px;
+      height: 50px;
+      background-color: #ccc;
+      display: inline-block;
+    }
+
+    .player {
+      background-color: green;
+      animation: player-move 0.5s ease-in-out;
+    }
+
+    .synonym {
+      background-color: yellow;
+    }
+
+    .antonym {
+      background-color: red;
+    }
+
+    @keyframes player-move {
+      0% { transform: translateX(0); }
+      100% { transform: translateX(50px); }
+    }
+  </style>
+</head>
+<body>
+  <div id="game-board"></div>
+
+  <script>
+    const gameBoard = document.getElementById('game-board');
+    const playerCell = document.querySelector('.player');
+    let playerPosition = [0, 0];
+    let currentStage = 0;
+
+    const stages = [
+      {
+        maze: [
+          [0, 0, 1, 0, 0],
+          [0, 0, 0, 0, 'Coward'],
+          [0, 1, 'P', 0, 0],
+          [0, 0, 0, 0, 'Timid'],
+          [0, 0, 0, 1, 0]
+        ],
+        synonyms: ['Brave', 'Courageous', 'Daring', 'Fearless', 'Heroic']
+      },
+      {
+        maze: [
+          [0, 0, 0, 1, 0],
+          [0, 1, 0, 0, 'Cowardly'],
+          [0, 0, 'P', 0, 0],
+          ['Timid', 0, 0, 0, 0],
+          [0, 0, 0, 0, 1]
+        ],
+        synonyms: ['Bold', 'Valiant', 'Audacious', 'Intrepid', 'Gallant']
+      },
+      {
+        maze: [
+          [0, 0, 1, 0, 0],
+          [0, 'Meek', 0, 0, 1],
+          [0, 0, 'P', 1, 0],
+          [1, 0, 0, 0, 0],
+          ['Docile', 0, 0, 0, 0]
+        ],
+        synonyms: ['Assertive', 'Confident', 'Forceful', 'Determined', 'Resolute']
+      },
+      {
+        maze: [
+          [0, 0, 0, 1, 0],
+          [0, 1, 0, 0, 0],
+          ['Feeble', 0, 'P', 0, 1],
+          [0, 0, 0, 0, 0],
+          [0, 0, 1, 0, 'Weak']
+        ],
+        synonyms: ['Strong', 'Powerful', 'Mighty', 'Robust', 'Vigorous']
+      },
+      {
+        maze: [
+          [0, 0, 1, 0, 0],
+          [0, 'Cowardly', 0, 0, 1],
+          [0, 0, 'P', 1, 0],
+          [1, 0, 0, 0, 0],
+          ['Timid', 0, 0, 0, 0]
+        ],
+        synonyms: ['Brave', 'Courageous', 'Daring', 'Fearless', 'Heroic']
+      },
+      {
+        maze: [
+          [0, 0, 0, 1, 0],
+          [0, 1, 0, 0, 'Weak'],
+          ['Feeble', 0, 'P', 0, 1],
+          [0, 0, 0, 0, 0],
+          [0, 0, 1, 0, 'Frail']
+        ],
+        synonyms: ['Strong', 'Powerful', 'Mighty', 'Robust', 'Vigorous']
+      },
+      {
+        maze: [
+          [0, 0, 1, 0, 0],
+          [0, 'Docile', 0, 0, 1],
+          [0, 0, 'P', 1, 0],
+          [1, 0, 0, 0, 0],
+          ['Meek', 0, 0, 0, 0]
+        ],
+        synonyms: ['Assertive', 'Confident', 'Forceful', 'Determined', 'Resolute']
+      },
+      {
+        maze: [
+          [0, 0, 0, 1, 0],
+          [0, 1, 0, 0, 0],
+          ['Frail', 0, 'P', 0, 1],
+          [0, 0, 0, 0, 0],
+          [0, 0, 1, 0, 'Feeble']
+        ],
+        synonyms: ['Strong', 'Powerful', 'Mighty', 'Robust', 'Vigorous']
+      },
+      {
+        maze: [
+          [0, 0, 1, 0, 0],
+          [0, 'Timid', 0, 0, 1],
+          [0, 0, 'P', 1, 0],
+          [1, 0, 0, 0, 0],
+          ['Cowardly', 0, 0, 0, 0]
+        ],
+        synonyms: ['Brave', 'Courageous', 'Daring', 'Fearless', 'Heroic']
+      },
+      {
+        maze: [
+          [0, 0, 0, 1, 0],
+          [0, 1, 0, 0, 'Weak'],
+          ['Frail', 0, 'P', 0, 1],
+          [0, 0, 0, 0, 0],
+          [0, 0, 1, 0, 'Feeble']
+        ],
+        synonyms: ['Strong', 'Powerful', 'Mighty', 'Robust', 'Vigorous']
+      }
+    ];
+
+    // Initialize the game
+    function initializeGame() {
+      displayStage(currentStage);
+    }
+
+    // Display the current stage
+    function displayStage(stageIndex) {
+      gameBoard.innerHTML = '';
+      const currentStage = stages[stageIndex];
+      currentStage.maze.forEach((row, y) => {
+        row.forEach((cell, x) => {
+          const cellElement = document.createElement('div');
+          cellElement.classList.add('maze-cell');
+          if (typeof cell === 'string') {
+            if (cell === 'P') {
+              cellElement.classList.add('player');
+              playerPosition = [x, y];
+            } else {
+              cellElement.classList.add('antonym');
+              cellElement.textContent = cell;
+            }
+          } else if (cell === 0) {
+            // Empty cell
+          } else {
+            // Synonym cell
+            cellElement.classList.add('synonym');
+            cellElement.textContent = cell;
+          }
+          gameBoard.appendChild(cellElement);
+        });
+      });
+    }
+
+    // Move the player
+    function movePlayer(direction) {
+      // Update player position
+      // Check for collisions with synonyms and antonyms
+      // Update the game board
+    }
+
+    // Collect a synonym
+    function collectSynonym(cell) {
+      // Remove the synonym from the game board
+      // Update the player's position to take a shortcut
+      // Move to the next stage if all synonyms are collected
+    }
+
+    // Handle player input
+    document.addEventListener('keydown', (event) => {
+      switch (event.key) {
+        case 'ArrowUp':
+          movePlayer('up');
+          break;
+        case 'ArrowDown':
+          movePlayer('down');
+          break;
+        case 'ArrowLeft':
+          movePlayer('left');
+          break;
+        case 'ArrowRight':
+          movePlayer('right');
+          break;
+      }
+    });
+
+    // Start the game
+    initializeGame();
+  </script>
+</body>
+</html>
